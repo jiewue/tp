@@ -4,6 +4,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -15,6 +16,7 @@ import seedu.address.model.person.TypedSearchPredicate;
  */
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
+    private static final Pattern NON_SEARCH_PREFIX = Pattern.compile("(?:^|\\s)(?:p|e|l|md|r|d|f)/");
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -41,6 +43,10 @@ public class FindCommandParser implements Parser<FindCommand> {
             }
             if (hasBlankTerm(nameTerms) || hasBlankTerm(tagTerms)
                     || hasBlankTerm(noteTerms) || hasBlankTerm(eventTerms)) {
+                throw invalidFormat();
+            }
+            if (Stream.of(nameTerms, tagTerms, noteTerms, eventTerms).flatMap(List::stream)
+                    .anyMatch(term -> NON_SEARCH_PREFIX.matcher(term).find())) {
                 throw invalidFormat();
             }
             return new FindCommand(new TypedSearchPredicate(nameTerms, tagTerms, noteTerms, eventTerms));

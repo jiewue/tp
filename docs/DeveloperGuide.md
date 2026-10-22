@@ -712,8 +712,8 @@ all meeting fields each create one undo step when they change the contact.
 
 `JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
 without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
-`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
-parser exposes event-only `find ev/TERM` without implementing other owners' search features.
+`EventContainsTermsPredicate` is reused by the typed-search predicate for case-insensitive partial
+event matching.
 The card bounds its event cue to 32 displayed characters, and the detail panel scrolls vertically.
 
 Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
@@ -753,6 +753,18 @@ until `due` is run again.
 
 Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
 preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
+
+### Typed contact search
+
+`FindCommandParser` keeps plain `find KEYWORD...` on `NameContainsKeywordsPredicate`, preserving its
+whole-word name matching. When it sees `n/`, `t/`, `nt/`, or `ev/`, it instead creates one
+`TypedSearchPredicate`. The parser rejects blank terms, unsupported command prefixes, and mixed
+plain/typed input before a command reaches the model.
+
+`TypedSearchPredicate` normalises terms once, uses partial matching, and combines repeated terms in
+one field with OR while combining populated fields with AND. Note and event terms are redacted from
+its diagnostic text. One predicate keeps this feature self-contained; #128 can later compose it with
+grouping, starred filtering, and sorting in the shared visible-list pipeline.
 
 ### Contact photo implementation
 

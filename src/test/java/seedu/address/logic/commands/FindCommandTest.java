@@ -90,6 +90,12 @@ public class FindCommandTest {
         FindCommand findCommand = new FindCommand(predicate);
         String expected = FindCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";
         assertEquals(expected, findCommand.toString());
+
+        TypedSearchPredicate typedPredicate = new TypedSearchPredicate(List.of("Alex"), List.of("Hack"),
+                List.of("private note"), List.of("private event"));
+        FindCommand typedFindCommand = new FindCommand(typedPredicate);
+        String typedExpected = FindCommand.class.getCanonicalName() + "{predicate=" + typedPredicate + "}";
+        assertEquals(typedExpected, typedFindCommand.toString());
     }
 
     /**

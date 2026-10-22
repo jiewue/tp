@@ -50,7 +50,9 @@ public class FindCommandParserTest {
 
     @Test
     public void parse_emptyMalformedOrMixedSearch_rejectsCorrectMessage() {
-        for (String args : new String[]{" n/", " ev/Hack ev/", " p/91234567"}) {
+        for (String args : new String[]{" n/", " t/", " nt/", " n/Alex t/", " ev/Hack ev/",
+            " p/91234567", " ev/Hack r/Mentor", " n/Alex p/91234567", " t/react e/alex@example.com",
+            " n/Alex md/2026-10-20"}) {
             assertParseFailure(parser, args,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }

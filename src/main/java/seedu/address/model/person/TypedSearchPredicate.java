@@ -5,6 +5,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+import seedu.address.commons.util.ToStringBuilder;
+
 /**
  * Matches typed search terms across contact fields.
  * Terms within one field use OR; terms from different fields use AND.
@@ -14,14 +16,16 @@ public final class TypedSearchPredicate implements Predicate<Person> {
     private final List<String> tagTerms;
     private final List<String> noteTerms;
     private final List<String> eventTerms;
+    private final EventContainsTermsPredicate eventPredicate;
 
     /** Creates a predicate from the typed terms for each searchable contact field. */
     public TypedSearchPredicate(List<String> nameTerms, List<String> tagTerms, List<String> noteTerms,
             List<String> eventTerms) {
-        this.nameTerms = List.copyOf(nameTerms);
-        this.tagTerms = List.copyOf(tagTerms);
-        this.noteTerms = List.copyOf(noteTerms);
-        this.eventTerms = List.copyOf(eventTerms);
+        this.nameTerms = normalise(nameTerms);
+        this.tagTerms = normalise(tagTerms);
+        this.noteTerms = normalise(noteTerms);
+        this.eventTerms = normalise(eventTerms);
+        eventPredicate = new EventContainsTermsPredicate(this.eventTerms);
     }
 
     @Override
@@ -38,16 +42,20 @@ public final class TypedSearchPredicate implements Predicate<Person> {
     }
 
     private boolean matchesEvent(Person person) {
-        return person.getMeeting().getEventName()
-                .map(event -> matchesAny(eventTerms, event))
-                .orElse(eventTerms.isEmpty());
+        return eventTerms.isEmpty() || eventPredicate.test(person);
     }
 
     private static boolean matchesAny(List<String> terms, String text) {
-        String lowerCaseText = text.toLowerCase(Locale.ROOT);
-        return terms.isEmpty() || terms.stream()
-                .map(term -> term.toLowerCase(Locale.ROOT))
-                .anyMatch(lowerCaseText::contains);
+        String normalisedText = normalise(text);
+        return terms.isEmpty() || terms.stream().anyMatch(normalisedText::contains);
+    }
+
+    private static List<String> normalise(List<String> terms) {
+        return terms.stream().map(TypedSearchPredicate::normalise).toList();
+    }
+
+    private static String normalise(String text) {
+        return text.strip().replaceAll("\\s+", " ").toLowerCase(Locale.ROOT);
     }
 
     @Override
@@ -64,5 +72,19 @@ public final class TypedSearchPredicate implements Predicate<Person> {
     @Override
     public int hashCode() {
         return Objects.hash(nameTerms, tagTerms, noteTerms, eventTerms);
+    }
+
+    @Override
+    public String toString() {
+        return new ToStringBuilder(this)
+                .add("nameTerms", nameTerms)
+                .add("tagTerms", tagTerms)
+                .add("noteTerms", redact(noteTerms))
+                .add("eventTerms", redact(eventTerms))
+                .toString();
+    }
+
+    private static String redact(List<String> terms) {
+        return terms.isEmpty() ? "[]" : "[hidden]";
     }
 }

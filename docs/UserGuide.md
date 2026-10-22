@@ -213,6 +213,12 @@ Examples:
 * `find t/react nt/teammate` finds contacts tagged `react` whose note contains `teammate`.
 * `find ev/hack singapore` finds contacts whose event name contains `hack singapore`.
 
+Input or situation | Message
+---|---
+`find`, `find n/`, or `find p/123` | `Invalid command format!` followed by the find usage
+`find Alice n/Bob` | `Use either plain keywords or field prefixes in one find command.`
+No contacts match | `0 person(s) listed!`
+
 ### Grouping contacts by tag: `group`
 
 Shows contacts with the specified tag.
